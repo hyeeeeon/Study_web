@@ -1,5 +1,6 @@
 package com.map_study.controller;
 
+import org.springframework.ui.Model;
 import com.map_study.entity.Post;
 import com.map_study.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,17 @@ public class PostController {
         return "redirect:/post/write";
     }
 
-    @GetMapping("/post/view")
-    public String postView(){
+    @GetMapping("/post/list")
+    public String postList(Model model){
+
+        model.addAttribute("list", postService.postList());
+        return "PostList";
+    }
+
+
+    @GetMapping("/post/view") //localhost:8080/post/view?id=1
+    public String postView(Model model, Integer id){
+        model.addAttribute("post", postService.postView(id));
         return "PostView";
     }
 }
