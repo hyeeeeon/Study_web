@@ -31,4 +31,9 @@ public class PostService {
         return postRepository.findById(id).get();
     }
 
+    //특정 게시글 삭제
+    public void postDelete(Integer id){
+        postRepository.deleteById(id);
+    }
+
 }

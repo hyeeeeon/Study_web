@@ -6,6 +6,7 @@ import com.map_study.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
@@ -23,7 +24,7 @@ public class PostController {
     public String postWritePro(Post post) {
 
         postService.write(post);
-        return "redirect:/post/write";
+        return "";
     }
 
     @GetMapping("/post/list")
@@ -38,5 +39,29 @@ public class PostController {
     public String postView(Model model, Integer id){
         model.addAttribute("post", postService.postView(id));
         return "PostView";
+    }
+
+    @GetMapping("/post/delete")
+    public String postDelete(Integer id){
+        postService.postDelete(id);
+        return "redirect:/post/list";
+    }
+
+    @GetMapping("/post/modify/{id}")
+    public String postModify(@PathVariable("id") Integer id, Model model){
+        model.addAttribute("post", postService.postView(id));
+        return "PostModify";
+        }
+
+    @PostMapping("/post/update/{id}")
+    public String postUpdate(@PathVariable("id") Integer id, Post post){
+
+        Post postTemp = postService.postView(id);
+        postTemp.setTitle(post.getTitle());
+        postTemp.setContent(post.getContent());
+
+        postService.write(postTemp);
+
+        return "redirect:/post/list";
     }
 }
