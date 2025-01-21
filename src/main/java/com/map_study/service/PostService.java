@@ -4,9 +4,14 @@ import com.map_study.entity.Post;
 import com.map_study.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PostService {
@@ -14,16 +19,27 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    //글 작성
+    //글 작성 처리
     @Transactional
-    public void write(Post post){
-        postRepository.save(post);
+    public void write(Post post, MultipartFile file) throws Exception{
 
+        String projectPath = System.getProperty("user.dir") + File.separator + "src" + File.separator +
+                "main" + File.separator + "resources" + File.separator + "static" + File.separator + "files";
+
+        UUID uuid = UUID.randomUUID(); //랜덤으로 이름 생성
+        String fileName = uuid.toString() + "_" + file.getOriginalFilename();
+        File saveFile = new File(projectPath, fileName);
+        file.transferTo(saveFile);
+
+        post.setFilename(fileName); //저장된 파일의 이름
+        post.setFilepath("/files/" + fileName); // 저장된 파일의 경로, 이름
+
+        postRepository.save(post);
     }
 
     //게시글 리스트 처리
-    public List<Post> postList(){
-        return postRepository.findAll();
+    public Page<Post> postList(Pageable pageable){
+        return postRepository.findAll(pageable);
     }
 
     //특정 게시글 불러오기
@@ -36,4 +52,12 @@ public class PostService {
         postRepository.deleteById(id);
     }
 
+    // 파일 크기 초과 예외 처리 (기본 설정으로 설정될 경우)
+    /*public void validateFileSize(MultipartFile file) throws Exception {
+        // 예시: 최대 파일 크기 10MB로 제한
+        long maxFileSize = 10 * 1024 * 1024; // 10MB
+        if (file.getSize() > maxFileSize) {
+            throw new Exception("파일 크기가 너무 큽니다. 최대 파일 크기는 10MB입니다.");
+        }
+    } */
 }
