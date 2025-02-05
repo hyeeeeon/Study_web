@@ -10,6 +10,12 @@
             margin: 0 auto;
             margin-top: 40px;
         }
+        
+        .post-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
     </style>
 <body>
 
@@ -20,6 +26,7 @@
             <tr>
                 <th>글 번호</th>
                 <th>제목</th>
+                <th>이미지</th>
             </tr>
             </thead>
             <tbody>
@@ -27,6 +34,9 @@
                     <td th:text="${post.id}">1</td>
                     <td>
                         <a th:text="${post.title}" th:href="@{/post/view(id=${post.id})}"></a>
+                    </td>
+                     <td>
+                        <img th:if="${post.filepath != null}" th:src="@{${post.filepath}}" class="post-image" alt="게시글 이미지" />
                     </td>
                 </tr>
             </tbody>
