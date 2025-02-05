@@ -10,7 +10,7 @@
             margin: 0 auto;
             margin-top: 40px;
         }
-        
+
         .post-image {
             width: 50px;
             height: 50px;
@@ -35,7 +35,7 @@
                     <td>
                         <a th:text="${post.title}" th:href="@{/post/view(id=${post.id})}"></a>
                     </td>
-                     <td>
+                    <td>
                         <img th:if="${post.filepath != null}" th:src="@{${post.filepath}}" class="post-image" alt="게시글 이미지" />
                     </td>
                 </tr>
