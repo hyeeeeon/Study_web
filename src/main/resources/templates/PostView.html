@@ -3,13 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <title>게시글 상세 페이지</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+<style>
+    .post-image {
+        width: 50%;
+        height: 50%;
+        object-fit: cover;
+    }
+</style>
 <body>
 
-<h1 th:text = "${post.title}">제목입니다.</h1>
-<p th:text = "${post.content}">내용이 들어갈 부분입니다.</p>
-<a th:href ="@{${post.filepath}}">사진</a>
+<h1 th:text="${post.title}">제목입니다.</h1>
+<p th:text="${post.content}">내용이 들어갈 부분입니다.</p>
+<img th:if="${post.filepath != null}" th:src="${post.filepath}" class="post-image" alt="게시글 이미지" />
 <a th:href="@{/post/delete(id=${post.id})}">글 삭제</a>
-<a th:href="@{/post/modify/{id}(id = ${post.id})}">수정</a>
+<a th:href="@{/post/modify/{id}(id=${post.id})}">수정</a>
+
+<!-- ✅ null 체크 추가 -->
+<button id="heart-button" th:text="${isHearted != null and isHearted ? '❤️' : '🤍'}"></button>
+<span id="heart-count" th:text="${post.heartCount}">0</span>
+
+<script th:inline="javascript">
+    $(document).ready(function () {
+        const memberId = 1;  // 임시 회원 ID
+        const postId = /*[[${post.id}]]*/ 1;
+
+        // 좋아요 여부 확인 후 아이콘 변경
+        $.get(`/like/${memberId}/${postId}`, function (isLiked) {
+            if (isLiked) {
+                $("#heart-button").text("❤️");
+            } else {
+                $("#heart-button").text("🤍");
+            }
+        });
+
+        // 좋아요 버튼 클릭 이벤트
+        $("#heart-button").click(function () {
+            if ($("#heart-button").text() === "🤍") {
+                $.post(`/heart/${memberId}/${postId}`, function () {
+                    $("#heart-button").text("❤️");
+                    let count = parseInt($("#heart-count").text()) + 1;
+                    $("#heart-count").text(count);
+                }).fail(function () {
+                    console.log("좋아요 실패");
+                });
+            } else {
+                $.ajax({
+                    type: "DELETE",
+                    url: `/heart/${memberId}/${postId}`,
+                    success: function () {
+                        $("#heart-button").text("🤍");
+                        let count = Math.max(0, parseInt($("#heart-count").text()) - 1);
+                        $("#heart-count").text(count);
+                    },
+                    error: function () {
+                        console.log("좋아요 취소 실패");
+                    }
+                });
+            }
+        });
+    });
+</script>
 </body>
 </html>

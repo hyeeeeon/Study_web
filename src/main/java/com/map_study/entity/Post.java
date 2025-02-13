@@ -1,10 +1,6 @@
 package com.map_study.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -14,13 +10,11 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-
     private String title;
-
     private String content;
-
     private String filename;
-
     private String filepath;
-}
 
+    @Column(name = "heart_count", columnDefinition = "bigint default 0")
+    private long heartCount;
+}
