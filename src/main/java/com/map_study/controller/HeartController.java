@@ -1,39 +1,41 @@
 package com.map_study.controller;
 
 import com.map_study.service.HeartService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/post")
+@RequiredArgsConstructor
 public class HeartController {
 
-    @Autowired
-    private HeartService heartService;
+    private final HeartService heartService;
 
     // 좋아요 추가
-    @PostMapping("/post/heart")
-    public String addHeart(@RequestParam Integer articleId, @RequestParam Integer memberId, Model model) {
+    @PostMapping("/{memberId}/{articleId}")
+    public ResponseEntity<String> addHeart(
+            @RequestParam Integer articleId,
+            @RequestParam Integer memberId) {
+
         heartService.addHeart(articleId, memberId);
-        model.addAttribute("articleId", articleId);
-        return "redirect:/post/view?id=" + articleId;
+        return ResponseEntity.ok("좋아요 추가됨");
     }
 
     // 좋아요 취소
-    @PostMapping("/post/unHeart")
-    public String removeLike(@RequestParam Integer articleId, @RequestParam Integer memberId, Model model) {
+    @PostMapping("/{memberId}/{articleId}")
+    public ResponseEntity<String> removeHeart(
+            @RequestParam Integer articleId,
+            @RequestParam Integer memberId) {
+
         heartService.removeHeart(articleId, memberId);
-        model.addAttribute("articleId", articleId);
-        return "redirect:/post/view?id=" + articleId;
+        return ResponseEntity.ok("좋아요 취소됨");
     }
 
-    // 특정 게시글에 대한 좋아요 수 조회
-    @PostMapping("/post/heartCount")
-    public String getHeartCount(@RequestParam Integer articleId, Model model) {
-        long heartCount = heartService.getHeartCount(articleId);
-        model.addAttribute("likeCount", heartCount);
-        return "PostView";  // 좋아요 수를 표시하는 게시글 보기 페이지
+    // 특정 게시글의 좋아요 개수 조회
+    @GetMapping("/{memberId}/{articleId}")
+    public ResponseEntity<Boolean> getHeartCount(@PathVariable("memberId") Integer memberId,
+                                              @PathVariable("articleId") Integer articleId) {
+        return ResponseEntity.ok(heartService.isHeartedByUser(memberId, articleId));
     }
 }

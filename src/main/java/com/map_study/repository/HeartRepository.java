@@ -13,5 +13,4 @@ public interface HeartRepository extends JpaRepository<Heart, Integer> {
     long countByArticleId(Integer articleId);
 
     boolean existsByMemberIdAndArticleId(Integer memberId, Integer articleId);
-
 }

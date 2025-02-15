@@ -75,8 +75,8 @@ public class PostController {
             return "Message";
         }
 
-        long likeCount = heartService.getHeartCount(id);
-        post.setHeartCount(likeCount);  //좋아요 수 추가
+        long heartCount = heartService.getHeartCount(id);
+        post.setHeartCount(heartCount);  //좋아요 수 추가
 
         boolean isHearted = heartService.isHeartedByUser(1, id);  //임시 회원 ID 사용
         model.addAttribute("post", post);
