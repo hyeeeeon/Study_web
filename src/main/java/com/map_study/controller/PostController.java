@@ -32,11 +32,13 @@ public class PostController {
     }
 
     @PostMapping("/post/writePro")
-    public String postWritePro(Post post, Model model, MultipartFile file) throws Exception {
-        postService.write(post, file);
-        model.addAttribute("message", "글 작성이 완료 되었습니다.");
+    public String postWritePro(Post post, Model model,
+                               @RequestParam("file") MultipartFile[] files) throws Exception {
+        // 다중 파일 처리
+        postService.write(post, files);
+        model.addAttribute("message", "글 작성이 완료되었습니다.");
         model.addAttribute("searchURL", "/post/list");
-        return "Message";
+        return "Message";  // 글 작성 완료 메시지 페이지 반환
     }
 
     @GetMapping("/post/list")
@@ -53,9 +55,10 @@ public class PostController {
         }
 
         model.addAttribute("list", list);
-        model.addAttribute("nowPage", pageList.getNumber() + 1); // 현재 페이지
         model.addAttribute("startPage", Math.max(1, pageList.getNumber() - 4)); // 블럭에서 보여줄 시작 페이지
         model.addAttribute("endPage", Math.min(pageList.getTotalPages(), pageList.getNumber() + 5)); // 블럭에서 보여줄 마지막 페이지
+        model.addAttribute("nowPage", pageList.getNumber() + 1); // 현재 페이지
+
 
         return "PostList";
     }
@@ -98,7 +101,7 @@ public class PostController {
     public String postUpdate(@PathVariable("postId") Integer postId,
                              Post post,
                              Model model,
-                             @RequestParam(name = "file", required = false) MultipartFile file) throws Exception {
+                             @RequestParam(name = "file", required = false) MultipartFile[] files) throws Exception {
 
         // 수정할 게시글을 불러옴
         Post postTemp = postService.postView(postId); // postId를 사용하여 수정할 게시글을 조회합니다.
@@ -113,13 +116,18 @@ public class PostController {
         postTemp.setTitle(post.getTitle());
         postTemp.setContent(post.getContent());
 
-        // 파일 존재 -> 처리, 없으면 기존 파일 유지
-        if (file != null && !file.isEmpty()) {
-            // 새로운 파일 업로드된 경우
-            postService.write(postTemp, file); // 파일을 처리하는 로직
+        // 파일이 존재하는 경우 처리
+        if (files != null && files.length > 0) {
+            // 기존 파일 삭제
+            if (postTemp.getFilename() != null) {
+                postService.deleteFile(postTemp.getFilename());  // 기존 파일 삭제
+            }
+
+            // 새로운 파일을 업로드
+            postService.write(postTemp, files);  // 다중 파일 업로드
         } else {
-            // 파일 없을 경우 기존 파일 그대로 유지하거나 null 넘김
-            postService.write(postTemp, null); // 기존 파일 그대로 유지
+            // 파일이 없다면 기존 파일 유지
+            postService.write(postTemp, null);  // 기존 파일 유지
         }
 
         model.addAttribute("message", "글 수정이 완료되었습니다.");
@@ -127,5 +135,4 @@ public class PostController {
 
         return "redirect:/post/list";
     }
-
 }

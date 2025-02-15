@@ -14,9 +14,4 @@ public interface HeartRepository extends JpaRepository<Heart, Integer> {
 
     boolean existsByMemberIdAndArticleId(Integer memberId, Integer articleId);
 
-    // 특정 게시글에 대한 좋아요 목록 조회
-    List<Heart> findByArticleId(Integer articleId);
-
-    // 특정 사용자가 좋아요한 게시글 목록 조회
-    List<Heart> findByMemberId(Integer memberId);
 }

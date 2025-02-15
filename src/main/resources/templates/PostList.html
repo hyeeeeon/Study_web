@@ -30,14 +30,17 @@
         </tr>
         </thead>
         <tbody>
+        <!-- 게시글 리스트 출력 -->
         <tr th:each="post : ${list}">
             <td th:text="${post.id}">1</td>
             <td>
                 <a th:text="${post.title}" th:href="@{/post/view(id=${post.id})}"></a>
             </td>
             <td>
-                <img th:src="${post.filepath}" class="post-image" alt="게시글 이미지" />
-            <td th:text="${post.filepath}">파일 경로 출력</td>
+                <!-- 이미지가 있을 경우에만 출력 -->
+                <img th:if="${post.filepath != null and post.filepath != ''}"
+                     th:src="@{/files/{filename}(filename=${post.filepath})}" class="post-image" alt="게시글 이미지" />
+            </td>
 
             <td>
                 <span th:text="${post.heartCount}">0</span>
@@ -47,6 +50,7 @@
     </table>
 
     <div>
+        <!-- 페이지 네비게이션 -->
         <th:block th:each="page : ${#numbers.sequence(startPage, endPage)}">
             <a th:if="${page != nowPage}" th:href="@{/post/list(page=${page - 1})}" th:text="${page}"></a>
             <strong th:if="${page == nowPage}" th:text="${page}" style="color : red"></strong>

@@ -2,11 +2,10 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>게시글 작성폼</title>
+    <title>게시글 수정폼</title>
 </head>
 
 <style>
-
     .layout {
         width: 500px;
         margin: 0 auto;
@@ -24,13 +23,21 @@
         min-height: 300px;
     }
 
+    .layout input[type="file"] {
+        margin-top: 10px;
+    }
 </style>
 
 <body>
 <div class="layout">
-    <form th:action="@{/post/update/{id}(id = ${post.id})}" method="post">
+    <!-- form 태그에 enctype="multipart/form-data" 속성 추가 -->
+    <form th:action="@{/post/update/{postId}(postId=${post.id})}" method="post" enctype="multipart/form-data">
         <input name="title" type="text" th:value="${post.title}">
         <textarea name="content" th:text="${post.content}"></textarea>
+
+        <!-- 파일 업로드 입력 추가 -->
+        <input type="file" name="file">
+
         <button type="submit">수정</button>
     </form>
 </div>
