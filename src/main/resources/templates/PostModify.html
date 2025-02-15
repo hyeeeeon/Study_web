@@ -26,17 +26,42 @@
     .layout input[type="file"] {
         margin-top: 10px;
     }
+
+    .file-list {
+        margin-top: 10px;
+    }
+
+    .file-list img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        margin-right: 10px;
+    }
 </style>
 
 <body>
 <div class="layout">
-    <!-- form 태그에 enctype="multipart/form-data" 속성 추가 -->
-    <form th:action="@{/post/update/{postId}(postId=${post.id})}" method="post" enctype="multipart/form-data">
-        <input name="title" type="text" th:value="${post.title}">
-        <textarea name="content" th:text="${post.content}"></textarea>
+    <h2>게시글 수정</h2>
 
-        <!-- 파일 업로드 입력 추가 -->
-        <input type="file" name="file">
+    <form th:action="@{/post/update/{postId}(postId=${post.id})}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" th:value="${post.id}" />
+
+        <label>제목:</label>
+        <input name="title" type="text" th:value="${post.title}" required /><br/><br/>
+
+        <label>내용:</label>
+        <textarea name="content" required>[[${post.content}]]</textarea><br/><br/>
+
+        <label>현재 업로드된 파일:</label>
+        <div class="file-list">
+            <div th:each="file, iterStat : ${post.filepath}">
+                <img th:src="@{${file}}" alt="첨부 이미지"/>
+                <input type="checkbox" name="deleteFiles" th:value="${post.filename[iterStat.index]}" /> 삭제
+            </div>
+        </div>
+
+        <label>새로운 파일 추가:</label>
+        <input type="file" name="newFiles" multiple /><br/><br/>
 
         <button type="submit">수정</button>
     </form>

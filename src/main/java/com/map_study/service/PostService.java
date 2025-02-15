@@ -33,31 +33,27 @@ public class PostService {
 
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    UUID uuid = UUID.randomUUID(); // 랜덤으로 이름 생성
-                    String fileName = uuid.toString() + "_" + file.getOriginalFilename(); // 새로운 파일명 생성
+                    UUID uuid = UUID.randomUUID(); // 랜덤으로 파일명 생성
+                    String fileName = uuid.toString() + "_" + file.getOriginalFilename(); // 새로운 파일명
 
                     // 파일 저장 경로
                     File saveFile = new File(projectPath, fileName);
                     file.transferTo(saveFile); // 파일 저장
 
-                    fileNames.add(fileName); // 파일명 리스트에 추가
-                    filePaths.add("/files/" + fileName); // 웹에서 접근할 경로는 /files/ 로 시작
+                    fileNames.add(fileName); // 파일명 리스트 추가
+                    filePaths.add("/files/" + fileName); // 접근 가능한 파일 경로
                 }
             }
 
-            post.setFilename(fileNames); // 다중 파일명을 저장
-            post.setFilepath(filePaths); // 다중 파일 경로를 저장
-        } else {
-            post.setFilename(null);
-            post.setFilepath(null);
+            post.setFilename(fileNames); // 다중 파일명 저장
+            post.setFilepath(filePaths); // 다중 파일 경로 저장
         }
 
-        // DB에 게시글 저장
+        // 게시글 저장
         postRepository.save(post);
     }
 
-
-    // 파일 삭제 처리 (파일이 교체될 때 기존 파일 삭제)
+    // 기존 파일 삭제 (수정 시 호출)
     public void deleteFile(List<String> fileNames) throws IOException {
         if (fileNames != null) {
             String projectPath = System.getProperty("user.dir") + File.separator + "src" + File.separator +
@@ -72,26 +68,71 @@ public class PostService {
         }
     }
 
-    // 게시글 리스트 처리
-    public Page<Post> postList(Pageable pageable){
+    // 게시글 리스트 조회
+    public Page<Post> postList(Pageable pageable) {
         return postRepository.findAll(pageable);
     }
 
-    // 특정 게시글 불러오기
-    public Post postView(Integer id){
-        Post post = postRepository.findById(id).orElse(null);
-
-        if (post != null) {
-            // Lazy Loading 컬렉션 초기화
-            post.getFilename().size();  // 컬렉션을 명시적으로 초기화
-            post.getFilepath().size();  // 컬렉션을 명시적으로 초기화
-        }
-
-        return post;
+    // 특정 게시글 조회
+    public Post postView(Integer id) {
+        return postRepository.findById(id).orElse(null);
     }
 
     // 특정 게시글 삭제
-    public void postDelete(Integer id){
+    public void postDelete(Integer id) {
+        Post post = postRepository.findById(id).orElse(null);
+        if (post != null && post.getFilename() != null) {
+            try {
+                deleteFile(post.getFilename()); // 파일 삭제
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         postRepository.deleteById(id);
     }
+
+    // 파일 수정
+    @Transactional
+    public void updatePost(Integer postId, Post updatedPost, MultipartFile[] files) throws Exception {
+        Post postTemp = postRepository.findById(postId).orElse(null);
+
+        if (postTemp != null) {
+            postTemp.setTitle(updatedPost.getTitle());
+            postTemp.setContent(updatedPost.getContent());
+
+            if (files != null && files.length > 0) {
+                // 기존 파일 삭제
+                if (postTemp.getFilename() != null) {
+                    deleteFile(postTemp.getFilename());
+                }
+
+                // 새로운 파일 저장
+                String projectPath = System.getProperty("user.dir") + File.separator + "src" + File.separator +
+                        "main" + File.separator + "resources" + File.separator + "static" + File.separator + "files";
+
+                List<String> fileNames = new ArrayList<>();
+                List<String> filePaths = new ArrayList<>();
+
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        UUID uuid = UUID.randomUUID();
+                        String fileName = uuid.toString() + "_" + file.getOriginalFilename();
+                        File saveFile = new File(projectPath, fileName);
+                        file.transferTo(saveFile);
+
+                        fileNames.add(fileName);
+                        filePaths.add("/files/" + fileName);
+                    }
+                }
+
+                // 새로운 파일 정보 저장
+                postTemp.setFilename(fileNames);
+                postTemp.setFilepath(filePaths);
+            }
+
+            // 수정된 정보 저장
+            postRepository.save(postTemp);
+        }
+    }
+
 }

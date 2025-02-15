@@ -16,6 +16,8 @@
             object-fit: cover;
         }
     </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
@@ -37,26 +39,70 @@
                 <a th:text="${post.title}" th:href="@{/post/view(id=${post.id})}"></a>
             </td>
             <td>
-                <!-- 이미지가 있을 경우에만 출력 -->
-                <img th:if="${post.filepath != null and post.filepath != ''}"
-                     th:src="@{/files/{filename}(filename=${post.filepath})}" class="post-image" alt="게시글 이미지" />
+                <img th:if="${post.filepath != null and not #lists.isEmpty(post.filepath)}"
+                     th:src="@{${post.filepath[0]} + '?t=' + ${#dates.createNow().time}}"
+                     class="post-image" alt="게시글 이미지" />
             </td>
-
             <td>
-                <span th:text="${post.heartCount}">0</span>
+                <span class="heart-count" th:text="${post.heartCount}">0</span>
+                <button class="heart-button"
+                        th:data-post-id="${post.id}"
+                        th:text="${isHearted != null and isHearted ? '❤️' : '🤍'}"></button>
             </td>
         </tr>
         </tbody>
     </table>
 
+    <!-- 페이지 네비게이션 -->
     <div>
-        <!-- 페이지 네비게이션 -->
         <th:block th:each="page : ${#numbers.sequence(startPage, endPage)}">
             <a th:if="${page != nowPage}" th:href="@{/post/list(page=${page - 1})}" th:text="${page}"></a>
             <strong th:if="${page == nowPage}" th:text="${page}" style="color : red"></strong>
         </th:block>
     </div>
 </div>
+
+<script th:inline="javascript">
+    $(document).ready(function () {
+        const memberId = 1;  // 임시 회원 ID
+
+        $(".heart-button").each(function () {
+            const button = $(this);
+            const postId = button.data("post-id");
+
+            // 좋아요 여부 확인
+            $.get(`/heart/${memberId}/${postId}`, function (isLiked) {
+                button.text(isLiked ? "❤️" : "🤍");
+            });
+
+            // 좋아요 버튼 클릭 이벤트
+            button.click(function () {
+                if (button.text() === "🤍") {
+                    $.post(`/heart/${memberId}/${postId}`, function () {
+                        button.text("❤️");
+                        let count = parseInt(button.siblings(".heart-count").text()) + 1;
+                        button.siblings(".heart-count").text(count);
+                    }).fail(function () {
+                        console.log("좋아요 실패");
+                    });
+                } else {
+                    $.ajax({
+                        type: "DELETE",
+                        url: `/heart/${memberId}/${postId}`,
+                        success: function () {
+                            button.text("🤍");
+                            let count = Math.max(0, parseInt(button.siblings(".heart-count").text()) - 1);
+                            button.siblings(".heart-count").text(count);
+                        },
+                        error: function () {
+                            console.log("좋아요 취소 실패");
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
 
 </body>
 </html>
