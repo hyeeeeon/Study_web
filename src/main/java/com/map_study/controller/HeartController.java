@@ -15,18 +15,18 @@ public class HeartController {
     // 좋아요 추가
     @PostMapping("/{memberId}/{articleId}")
     public ResponseEntity<String> addHeart(
-            @RequestParam Integer articleId,
-            @RequestParam Integer memberId) {
+            @PathVariable Integer articleId,
+            @PathVariable Integer memberId) {
 
         heartService.addHeart(articleId, memberId);
         return ResponseEntity.ok("좋아요 추가됨");
     }
 
     // 좋아요 취소
-    @PostMapping("/{memberId}/{articleId}")
+    @DeleteMapping("/{memberId}/{articleId}")
     public ResponseEntity<String> removeHeart(
-            @RequestParam Integer articleId,
-            @RequestParam Integer memberId) {
+            @PathVariable Integer articleId,
+            @PathVariable Integer memberId) {
 
         heartService.removeHeart(articleId, memberId);
         return ResponseEntity.ok("좋아요 취소됨");
