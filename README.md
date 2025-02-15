@@ -1,7 +1,7 @@
 # 개발환경
 - IDE: IntelliJ IDEA
 - Spring Boot 3.4.1
-- JDK 17
+- Java 17
 - MySQL
 - Thymeleaf
 
