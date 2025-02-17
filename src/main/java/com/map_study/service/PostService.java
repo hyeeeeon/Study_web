@@ -61,8 +61,16 @@ public class PostService {
 
             for (String fileName : fileNames) {
                 File file = new File(projectPath, fileName);
+                System.out.println("삭제 시도: " + file.getAbsolutePath());
+
                 if (file.exists()) {
-                    file.delete();  // 파일 삭제
+                    if (file.delete()) {
+                        System.out.println("파일 삭제 성공: " + file.getName());
+                    } else {
+                        System.out.println("파일 삭제 실패: " + file.getName());
+                    }
+                } else {
+                    System.out.println("파일이 존재하지 않음: " + file.getName());
                 }
             }
         }
@@ -93,25 +101,44 @@ public class PostService {
 
     // 파일 수정
     @Transactional
-    public void updatePost(Integer postId, Post updatedPost, MultipartFile[] files) throws Exception {
+    public void updatePost(Integer postId, Post updatedPost, MultipartFile[] files, String[] deleteFiles) throws Exception {
         Post postTemp = postRepository.findById(postId).orElse(null);
 
         if (postTemp != null) {
             postTemp.setTitle(updatedPost.getTitle());
             postTemp.setContent(updatedPost.getContent());
 
-            if (files != null && files.length > 0) {
-                // 기존 파일 삭제
-                if (postTemp.getFilename() != null) {
-                    deleteFile(postTemp.getFilename());
+            // 삭제할 파일 처리
+            if (deleteFiles != null && deleteFiles.length > 0) {
+                List<String> updatedFileNames = new ArrayList<>(postTemp.getFilename());
+                List<String> updatedFilePaths = new ArrayList<>(postTemp.getFilepath());
+
+                for (String fileName : deleteFiles) {
+                    int index = updatedFileNames.indexOf(fileName);
+                    if (index != -1) {
+                        updatedFileNames.remove(index);
+                        updatedFilePaths.remove(index);
+                        deleteFile(List.of(fileName)); // 실제 파일 삭제
+                    }
                 }
 
-                // 새로운 파일 저장
+                postTemp.setFilename(updatedFileNames);
+                postTemp.setFilepath(updatedFilePaths);
+            }
+
+            // 새로운 파일 추가
+            if (files != null && files.length > 0 && !files[0].isEmpty()) {
                 String projectPath = System.getProperty("user.dir") + File.separator + "src" + File.separator +
                         "main" + File.separator + "resources" + File.separator + "static" + File.separator + "files";
 
-                List<String> fileNames = new ArrayList<>();
-                List<String> filePaths = new ArrayList<>();
+                // 디렉토리가 없으면 생성
+                File directory = new File(projectPath);
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
+
+                List<String> fileNames = new ArrayList<>(postTemp.getFilename());
+                List<String> filePaths = new ArrayList<>(postTemp.getFilepath());
 
                 for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
@@ -125,13 +152,12 @@ public class PostService {
                     }
                 }
 
-                // 새로운 파일 정보 저장
                 postTemp.setFilename(fileNames);
                 postTemp.setFilepath(filePaths);
             }
 
-            // 수정된 정보 저장
-            postRepository.save(postTemp);
+            // 수정된 정보 저장 후 강제 반영
+            postRepository.saveAndFlush(postTemp);
         }
     }
 

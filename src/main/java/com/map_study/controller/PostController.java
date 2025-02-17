@@ -96,13 +96,15 @@ public class PostController {
     public String postUpdate(@PathVariable("postId") Integer postId,
                              Post post,
                              Model model,
-                             @RequestParam(name = "file", required = false) MultipartFile[] files) throws Exception {
+                             @RequestParam(name = "files", required = false) MultipartFile[] files,
+                             @RequestParam(name = "deleteFiles", required = false) String[] deleteFiles) throws Exception {
 
-        postService.updatePost(postId, post, files);
+        postService.updatePost(postId, post, files, deleteFiles);
 
         model.addAttribute("message", "글 수정이 완료되었습니다.");
         model.addAttribute("searchUrl", "/post/list");
 
         return "redirect:/post/list";
     }
+
 }
